@@ -125,7 +125,7 @@ void SeplosBms::on_telemetry_data_(const std::vector<uint8_t> &data) {
 
   //   63     0x03 0x13      Stage of charge                  787 * 0.1f = 78.7             %
 
-  float state_of_charge = (residual_capacity / total_capacity) * 100f;
+  float state_of_charge = (residual_capacity / total_capacity) * 100.0f;
   this->publish_state_(this->state_of_charge_sensor_, state_of_charge); // there is no direct state of charge it seems - must be calculated
 
   //   67     0x00 0x46      Number of cycles                 70
