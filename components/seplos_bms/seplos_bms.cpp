@@ -113,14 +113,20 @@ void SeplosBms::on_telemetry_data_(const std::vector<uint8_t> &data) {
   this->publish_state_(this->discharging_power_sensor_, std::abs(std::min(0.0f, power)));  // -500W vs 0W -> 500W
 
   //   58     0x34 0x4E      Residual capacity                13390 * 0.01f = 133.90        Ah
-  this->publish_state_(this->residual_capacity_sensor_, (float) seplos_get_16bit(offset + 4) * 0.01f);
+
+  float residual_capacity = (float) seplos_get_16bit(offset + 4) * 0.01f;
+  this->publish_state_(this->residual_capacity_sensor_, residual_capacity);
 
   //   60     0x0A           Custom number                    10
   //   61     0x42 0x68      Battery capacity                 17000 * 0.01f = 170.00        Ah
-  this->publish_state_(this->battery_capacity_sensor_, (float) seplos_get_16bit(offset + 7) * 0.01f);
+  
+  float total_capacity = (float) seplos_get_16bit(offset + 7) * 0.01f;
+  this->publish_state_(this->battery_capacity_sensor_, total_capacity);
 
   //   63     0x03 0x13      Stage of charge                  787 * 0.1f = 78.7             %
-  this->publish_state_(this->state_of_charge_sensor_, (float) ((float)this->residual_capacity_sensor_ / (float)this->battery_capacity_sensor_) * 100f); // there is no direct state of charge it seems - must be calculated
+
+  float state_of_charge = (residual_capacity / total_capacity) * 100f;
+  this->publish_state_(this->state_of_charge_sensor_, state_of_charge); // there is no direct state of charge it seems - must be calculated
 
   //   67     0x00 0x46      Number of cycles                 70
   this->publish_state_(this->charging_cycles_sensor_, (float) seplos_get_16bit(offset + 9)); //was 13
