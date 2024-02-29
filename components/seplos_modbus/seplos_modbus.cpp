@@ -155,7 +155,7 @@ void SeplosModbus::send(uint8_t protocol_version, uint8_t address, uint8_t funct
   std::vector<uint8_t> data;
   data.push_back(protocol_version);  // VER
   data.push_back(address);           // ADDR
-  data.push_back(0x46);              // CID1
+  data.push_back(0xD5);              // CID1  was 0x46
   data.push_back(function);          // CID2 (0x42)
   data.push_back(lenid >> 8);        // LCHKSUM (0xE0)
   data.push_back(lenid >> 0);        // LENGTH (0x02)
