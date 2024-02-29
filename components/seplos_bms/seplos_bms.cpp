@@ -132,7 +132,7 @@ void SeplosBms::on_telemetry_data_(const std::vector<uint8_t> &data) {
   this->publish_state_(this->charging_cycles_sensor_, (float) seplos_get_16bit(offset + 9)); //was 13
   
   //   65     0x46 0x50      Rated capacity                   18000 * 0.01f = 180.00        Ah
-  this->publish_state_(this->rated_capacity_sensor_, (float) seplos_get_16bit(offset + 11) * 10f); // was 11 - named "total discharge capacity" in BMS protocol
+  this->publish_state_(this->rated_capacity_sensor_, (float) seplos_get_16bit(offset + 11) * 10.0f); // was 11 - named "total discharge capacity" in BMS protocol
   
   //   69     0x03 0xE8      State of health                  1000 * 0.1f = 100.0           %
   this->publish_state_(this->state_of_health_sensor_, (float) seplos_get_16bit(offset + 13) * 0.1f); // was 15 
