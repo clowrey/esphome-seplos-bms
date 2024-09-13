@@ -9,6 +9,9 @@ on:  # yamllint disable-line rule:truthy
   schedule:
     - cron: 0 12 * * *
 
+env:
+  FORCE_COLOR: 1
+
 jobs:
   yamllint:
     runs-on: ubuntu-latest
@@ -23,13 +26,19 @@ jobs:
     env:
       esphome_directory: esphome
     runs-on: ubuntu-latest
-    # cpp lint job runs with esphome-lint docker image so that clang-format-*
-    # doesn't have to be installed
-    container: esphome/esphome-lint:latest
     steps:
       - uses: actions/checkout@v2
-      # Set up the pio project so that the cpp checks know how files are compiled
-      # (build flags, libraries etc)
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.12'
+      - name: Cache pip modules
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/pip
+          key: esphome-pip-3.12-${{ hashFiles('setup.py') }}
+          restore-keys: |
+            esphome-pip-3.12-
 
       - name: 💣 Clone esphome project
         run: git clone https://github.com/esphome/esphome.git
@@ -42,6 +51,14 @@ jobs:
           git commit -a -m "Add external component"
         working-directory: ${{ env.esphome_directory }}
 
+      - name: Add missing requirements
+        run: pip3 install setuptools wheel
+      - name: Set up python environment
+        run: VIRTUAL_ENV=false script/setup
+        working-directory: ${{ env.esphome_directory }}
+
+      # Set up the pio project so that the cpp checks know how files are compiled
+      # (build flags, libraries etc)
       - name: Set up platformio environment
         run: pio init --ide vscode
         working-directory: ${{ env.esphome_directory }}
@@ -63,14 +80,14 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.9'
+          python-version: '3.12'
       - name: Cache pip modules
         uses: actions/cache@v1
         with:
           path: ~/.cache/pip
-          key: esphome-pip-3.9-${{ hashFiles('setup.py') }}
+          key: esphome-pip-3.12-${{ hashFiles('setup.py') }}
           restore-keys: |
-            esphome-pip-3.9-
+            esphome-pip-3.12-
 
       - name: 💣Clone esphome project
         run: git clone https://github.com/esphome/esphome.git
@@ -117,14 +134,14 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.9'
+          python-version: '3.12'
       - name: Cache pip modules
         uses: actions/cache@v1
         with:
           path: ~/.cache/pip
-          key: esphome-pip-3.9-${{ hashFiles('setup.py') }}
+          key: esphome-pip-3.12-${{ hashFiles('setup.py') }}
           restore-keys: |
-            esphome-pip-3.9-
+            esphome-pip-3.12-
 
       - name: 💣Clone esphome project
         run: git clone https://github.com/esphome/esphome.git
@@ -161,10 +178,10 @@ jobs:
     steps:
       - name: ⤵️ Check out configuration from GitHub
         uses: actions/checkout@v2
-      - name: Setup Python 3.9
+      - name: Setup Python 3.12
         uses: actions/setup-python@v1
         with:
-          python-version: 3.9
+          python-version: 3.12
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip setuptools wheel
@@ -177,39 +194,16 @@ jobs:
       - name: Write tests/secrets.yaml
         shell: bash
         run: 'echo -e "wifi_ssid: ssid\nwifi_password: password\nmqtt_host: host\nmqtt_username: username\nmqtt_password: password" > tests/secrets.yaml'
-      - name: Validate esp8266 example configurations
+      - name: Validate example configurations
         run: |
-          esphome -s external_components_source components config esp8266-example.yaml
-          esphome -s external_components_source components config esp8266-example-debug.yaml
-          esphome -s external_components_source components config esp8266-example-faker.yaml
-          esphome -s external_components_source components config esp8266-boqiang-example.yaml
-          esphome -s external_components_source components config esp8266-boqiang-example-debug.yaml
-          esphome -s external_components_source components config esp8266-boqiang-example-faker.yaml
-          esphome -s external_components_source components config esp8266-boqiang-bms001-example.yaml
-          esphome -s external_components_source components config esp8266-boqiang-bms001-example-debug.yaml
-          esphome -s external_components_source components config esp8266-boqiang-bms001-example-faker.yaml
-          esphome -s external_components_source components config esp8266-example-multiple-battery-banks.yaml
-          esphome -s external_components_source components config esp8266-seplos-v3-example.yaml
-      - name: Validate esp32 example configurations
-        run: |
-          esphome -s external_components_source components config esp32-example.yaml
-          esphome -s external_components_source components config esp32-example-debug.yaml
-          esphome -s external_components_source components config esp32-example-faker.yaml
-          esphome -s external_components_source components config esp32-boqiang-example.yaml
-          esphome -s external_components_source components config esp32-boqiang-example-debug.yaml
-          esphome -s external_components_source components config esp32-boqiang-example-faker.yaml
-          esphome -s external_components_source components config esp32-boqiang-bms001-example.yaml
-          esphome -s external_components_source components config esp32-boqiang-bms001-example-debug.yaml
-          esphome -s external_components_source components config esp32-boqiang-bms001-example-faker.yaml
-          esphome -s external_components_source components config esp32-seplos-v3-example.yaml
+          for YAML in esp*.yaml; do
+            esphome -s external_components_source components config $YAML >/dev/null
+          done
       - name: Validate test configurations
         run: |
-          esphome -s external_components_source ../components config tests/esp8266-boqiang-emulator.yaml
-          esphome -s external_components_source ../components config tests/esp8266-boqiang-test.yaml
-          esphome -s external_components_source ../components config tests/esp8266-fake-bms.yaml
-          esphome -s external_components_source ../components config tests/esp8266-protocol-version.yaml
-          esphome -s external_components_source ../components config tests/esp8266-requests.yaml
-          esphome -s external_components_source ../components config tests/esp8266-seplos-emulator.yaml
+          for YAML in tests/esp*.yaml; do
+            esphome -s external_components_source ../components config $YAML >/dev/null
+          done
 
   esphome-compile:
     runs-on: ubuntu-latest
@@ -229,10 +223,10 @@ jobs:
           path: .pioenvs
           key: esphome-compile-pioenvs-${{ hashFiles('*.yaml') }}
           restore-keys: esphome-compile-pioenvs-
-      - name: Set up Python 3.9
+      - name: Set up Python 3.12
         uses: actions/setup-python@v1
         with:
-          python-version: 3.9
+          python-version: 3.12
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip setuptools wheel

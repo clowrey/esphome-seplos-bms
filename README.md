@@ -24,6 +24,7 @@ ESPHome component to monitor Seplos BMS via UART or RS485
   override_pack: 1
   override_cell_count: 10
   ```
+* Seplos BMS V3.0 Type C, B-48200-C (BMS16S200A-SP05B, FW 1.3, [@Goaheadz](https://github.com/syssi/esphome-seplos-bms/discussions/98)) using [esp8266-seplos-v3-example.yaml](esp32-seplos-v3-example.yaml)
 
 ## Untested devices
 
@@ -63,7 +64,7 @@ Please be aware of the different RJ45 pinout colors ([T-568A vs. T-568B](images/
 
 ## Requirements
 
-* [ESPHome 2022.4.0 or higher](https://github.com/esphome/esphome/releases).
+* [ESPHome 2024.6.0 or higher](https://github.com/esphome/esphome/releases).
 * Generic ESP32 or ESP8266 board
 
 ## Installation
