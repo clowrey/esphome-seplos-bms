@@ -1,3 +1,7 @@
+# Rich Power BMS - Modified 
+
+This is now a "rich power" BMS 
+
 # esphome-seplos-bms
 
 ESPHome component to monitor Seplos BMS via UART or RS485
